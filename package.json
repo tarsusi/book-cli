@@ -1,0 +1,20 @@
+{
+  "name": "book-cli",
+  "version": "1.0.0",
+  "description": "A NodeJS cli application that completed missing informations of given Books CSV file.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tarsusi/book-cli.git"
+  },
+  "keywords": [],
+  "author": "Omer Burak KARATAS",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tarsusi/book-cli/issues"
+  },
+  "homepage": "https://github.com/tarsusi/book-cli#readme"
+}
