@@ -4,6 +4,11 @@
   "description": "A NodeJS cli application that completed missing informations of given Books CSV file.",
   "main": "index.js",
   "scripts": {
+    "build": "babel ./index.js --out-dir dist",
+    "clean": "rm -rf ./dist",
+    "dev": "NODE_ENV=development babel-node ./index.js",
+    "lint": "eslint",
+    "prod": "npm run clean && npm run build && NODE_ENV=production babel-node dist/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -16,5 +21,14 @@
   "bugs": {
     "url": "https://github.com/tarsusi/book-cli/issues"
   },
-  "homepage": "https://github.com/tarsusi/book-cli#readme"
+  "homepage": "https://github.com/tarsusi/book-cli#readme",
+  "devDependencies": {
+    "@babel/cli": "^7.4.3",
+    "@babel/core": "^7.4.3",
+    "@babel/node": "^7.2.2",
+    "@babel/preset-env": "^7.4.3",
+    "eslint": "^5.16.0",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-plugin-import": "^2.16.0"
+  }
 }
