@@ -1,6 +1,3 @@
-import vorpal from 'vorpal';
+import UI from './src/ui/UI';
 
-const Vorpal = vorpal();
-const { chalk } = Vorpal;
-
-Vorpal.delimiter(chalk.magenta('book-cli$')).show();
+UI.show();
