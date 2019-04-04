@@ -3,6 +3,7 @@ import fs from 'fs';
 import Logger from '../logger/Logger';
 import UI from '../ui/UI';
 import ParserUtil from './ParserUtil';
+import { downloadImage } from './ImageUtil';
 
 import { CSV_HEADERS, DEST_PATH, MAX_PERCENTAGE } from '../common/FILE_CONSTANTS';
 
@@ -47,6 +48,8 @@ const readAndUpdateFile = (filePath, callback) => {
             }
 
             const bookInfo = await ParserUtil.parseBook(isbn, bookName, author, price);
+
+            downloadImage(bookInfo.bookImage, `${bookInfo.bookName}-${bookInfo.author}`);
 
             csv.stringify(
               [
