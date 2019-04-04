@@ -1,0 +1,7 @@
+const PARSER_STRATEGIES = {
+  RANDOM: 'RANDOM',
+  KITAP_YURDU: 'KITAP_YURDU',
+  DR: 'D&R',
+};
+
+export default PARSER_STRATEGIES;

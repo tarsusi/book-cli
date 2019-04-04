@@ -2,6 +2,7 @@ import csv from 'csv';
 import fs from 'fs';
 import Logger from '../logger/Logger';
 import UI from '../ui/UI';
+import ParserUtil from './ParserUtil';
 
 import { CSV_HEADERS, DEST_PATH } from '../common/FILE_CONSTANTS';
 
@@ -43,6 +44,8 @@ const readAndUpdateFile = (filePath, callback) => {
             const percentage = ((charsCopied / fileSize) * 100).toFixed(2);
 
             UI.redraw(`${percentage}%`);
+
+            ParserUtil.parseBook(isbn, bookName, author, price);
 
             writer.write(`${rowFields.join(',')}\n`);
           })
