@@ -6,7 +6,7 @@ import IdefixParser from '../parser/IdefixParser';
 const PARSERS = [DRParser, IdefixParser];
 
 class ParserUtil {
-  constructor(parserStrategy = PARSER_STRATEGIES.IDEFIX) {
+  constructor(parserStrategy = PARSER_STRATEGIES.RANDOM) {
     this.parserStrategy = parserStrategy;
   }
 
