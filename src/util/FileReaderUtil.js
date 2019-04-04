@@ -49,7 +49,14 @@ const readAndUpdateFile = (filePath, callback) => {
             const bookInfo = await ParserUtil.parseBook(isbn, bookName, author, price);
 
             csv.stringify(
-              [[isbn, bookInfo.bookName, bookInfo.author, bookInfo.price]],
+              [
+                [
+                  isbn.trim(),
+                  bookInfo.bookName.trim(),
+                  bookInfo.author.trim(),
+                  bookInfo.price.trim(),
+                ],
+              ],
               (err, output) => {
                 const percentage = ((charsCopied / fileSize) * MAX_PERCENTAGE).toFixed(2);
 
