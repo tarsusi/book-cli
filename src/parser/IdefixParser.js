@@ -27,7 +27,7 @@ class IdefixParser {
         .first()
         .text() || '';
       const price = firstBook.find('.product-info #prices').text() || '';
-      const bookImage = firstBook.find('.product-image .image-area img').attr('src') || '';
+      const bookImage = firstBook.find('.product-image .image-area img').attr('data-src') || '';
 
       return {
         bookName,
