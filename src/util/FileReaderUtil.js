@@ -4,7 +4,9 @@ import Logger from '../logger/Logger';
 import UI from '../ui/UI';
 import ParserUtil from './ParserUtil';
 
-import { CSV_HEADERS, DEST_PATH } from '../common/FILE_CONSTANTS';
+import { CSV_HEADERS, DEST_PATH, MAX_PERCENTAGE } from '../common/FILE_CONSTANTS';
+
+const findByteLength = text => Buffer.byteLength(text, 'utf8');
 
 const readAndUpdateFile = (filePath, callback) => {
   if (fs.existsSync(filePath)) {
@@ -16,16 +18,19 @@ const readAndUpdateFile = (filePath, callback) => {
         callback();
       } else {
         const fileSize = stat.size;
-        let charsCopied = Object.keys(CSV_HEADERS).join(',').length + 1; // initially add first header line
+        let charsCopied = findByteLength(Object.keys(CSV_HEADERS).join(',')) + 1; // initially add first header line
 
         const parser = csv.parse({ delimiter: ',', columns: true });
+
+        fs.unlinkSync(DEST_PATH);
+
         const writer = fs.createWriteStream(DEST_PATH, { flags: 'a' });
 
         UI.redraw();
 
         fs.createReadStream(filePath)
           .pipe(parser)
-          .on('data', (row) => {
+          .on('data', async (row) => {
             const isbn = row[CSV_HEADERS.ISBN];
             const bookName = row[CSV_HEADERS.BOOK_NAME];
             const author = row[CSV_HEADERS.AUTHOR];
@@ -33,7 +38,7 @@ const readAndUpdateFile = (filePath, callback) => {
 
             const rowFields = [isbn, bookName, author, price];
 
-            const rowCharLength = rowFields.join(',').length + 1;
+            const rowCharLength = findByteLength(rowFields.join(',')) + 1;
 
             charsCopied += rowCharLength;
 
@@ -41,19 +46,23 @@ const readAndUpdateFile = (filePath, callback) => {
               charsCopied -= 1;
             }
 
-            const percentage = ((charsCopied / fileSize) * 100).toFixed(2);
+            const bookInfo = await ParserUtil.parseBook(isbn, bookName, author, price);
 
-            UI.redraw(`${percentage}%`);
+            csv.stringify(
+              [[isbn, bookInfo.bookName, bookInfo.author, bookInfo.price]],
+              (err, output) => {
+                const percentage = ((charsCopied / fileSize) * MAX_PERCENTAGE).toFixed(2);
 
-            ParserUtil.parseBook(isbn, bookName, author, price);
+                UI.redraw(`${percentage}%`);
 
-            writer.write(`${rowFields.join(',')}\n`);
-          })
-          .on('end', () => {
-            UI.redraw('File reading is completed');
-            writer.end();
-            parser.end();
-            callback();
+                writer.write(output);
+
+                if (percentage >= MAX_PERCENTAGE) {
+                  UI.redraw('File reading is completed');
+                  callback();
+                }
+              },
+            );
           });
       }
     });

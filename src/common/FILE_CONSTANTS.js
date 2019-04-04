@@ -6,3 +6,5 @@ export const CSV_HEADERS = {
 };
 
 export const DEST_PATH = 'output.csv';
+
+export const MAX_PERCENTAGE = 100;
