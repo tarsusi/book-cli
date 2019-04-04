@@ -1,4 +1,4 @@
-import readAndUpdateFile from '../reader/FileReaderUtil';
+import readAndUpdateFile from '../util/FileReaderUtil';
 
 export const UI_PREFIX = 'book-cli$';
 
