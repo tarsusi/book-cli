@@ -1,12 +1,12 @@
 import PARSER_STRATEGIES from '../common/UTIL_CONSTANTS';
 
 import DRParser from '../parser/DRParser';
-import KitapYurduParser from '../parser/KitapYurduParser';
+import IdefixParser from '../parser/IdefixParser';
 
-const PARSERS = [DRParser, KitapYurduParser];
+const PARSERS = [DRParser, IdefixParser];
 
 class ParserUtil {
-  constructor(parserStrategy = PARSER_STRATEGIES.RANDOM) {
+  constructor(parserStrategy = PARSER_STRATEGIES.IDEFIX) {
     this.parserStrategy = parserStrategy;
   }
 
@@ -14,8 +14,8 @@ class ParserUtil {
     switch (this.parserStrategy) {
       case PARSER_STRATEGIES.DR:
         return DRParser;
-      case PARSER_STRATEGIES.KITAP_YURDU:
-        return KitapYurduParser;
+      case PARSER_STRATEGIES.IDEFIX:
+        return IdefixParser;
       case PARSER_STRATEGIES.RANDOM:
       default:
         return PARSERS[Math.floor(Math.random() * PARSERS.length)];

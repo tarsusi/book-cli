@@ -1,6 +1,6 @@
 const PARSER_STRATEGIES = {
   RANDOM: 'RANDOM',
-  KITAP_YURDU: 'KITAP_YURDU',
+  IDEFIX: 'IDEFIX',
   DR: 'D&R',
 };
 
