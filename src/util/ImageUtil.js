@@ -21,4 +21,6 @@ export const downloadImage = (imageUrl, fileDest) => {
   const fileName = path.join(IMAGE_DEST_DIR, `${fileDest}.${findImageSuffix(imageUrl)}`);
 
   req.pipe(fs.createWriteStream(fileName));
+
+  return fileName;
 };
