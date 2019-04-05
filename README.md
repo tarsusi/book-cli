@@ -31,16 +31,16 @@ In this project, [the vorpal](https://github.com/dthree/vorpal) is used to build
 | **correct-csv** | Reads a CSV file and fulfill missing data |
 | **exit**        | Exits application.                        |
 
-- The UI related constants can be found in `src/common/UTIL_CONSTANTS.js`
+- The UI related constants can be found in `src/constants/UTIL_CONSTANTS.js`
 
 
 ## CSV Parser
 
-- In this project, a csv file is read by [CSV module](https://csv.js.org/). In CSV file, the headers, stated in `src/common/FILE_CONSTANTS.js`, are expected.
+- In this project, a csv file is read by [CSV module](https://csv.js.org/). In CSV file, the headers, stated in `src/constants/FILE_CONSTANTS.js`, are expected.
 
 ## Images
 
-- While traversing book rows, for each row the related image is fetched and saved to the `images` folder. This folder destination can be changed in `src/common/FILE_CONSTANTS.js`.
+- While traversing book rows, for each row the related image is fetched and saved to the `images` folder. This folder destination can be changed in `src/constants/FILE_CONSTANTS.js`.
 
 ## Parsers
 

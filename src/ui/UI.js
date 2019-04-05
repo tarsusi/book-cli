@@ -1,5 +1,5 @@
 import vorpal from 'vorpal';
-import { UI_PREFIX, UI_COMMANDS } from '../common/UI_CONSTANTS';
+import { UI_PREFIX, UI_COMMANDS } from '../constants/UI_CONSTANTS';
 
 const Vorpal = vorpal();
 const { chalk } = Vorpal;

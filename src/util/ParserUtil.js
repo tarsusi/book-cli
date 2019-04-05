@@ -1,4 +1,4 @@
-import PARSER_STRATEGIES from '../common/UTIL_CONSTANTS';
+import PARSER_STRATEGIES from '../constants/UTIL_CONSTANTS';
 
 import DRParser from '../parser/DRParser';
 import IdefixParser from '../parser/IdefixParser';

@@ -1,6 +1,6 @@
 import fs from 'fs';
 
-import { IMAGE_DEST_DIR } from '../common/FILE_CONSTANTS';
+import { IMAGE_DEST_DIR } from '../constants/FILE_CONSTANTS';
 
 const ISBN_10_LENGTH = 10;
 const ISBN_13_LENGTH = 13;

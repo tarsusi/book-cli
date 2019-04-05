@@ -14,7 +14,7 @@ import {
   CSV_HEADERS,
   DEST_PATH,
   MAX_PERCENTAGE,
-} from '../common/FILE_CONSTANTS';
+} from '../constants/FILE_CONSTANTS';
 
 const findByteLength = text => Buffer.byteLength(text, 'utf8');
 

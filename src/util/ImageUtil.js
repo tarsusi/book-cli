@@ -2,7 +2,7 @@ import fs from 'fs';
 import requestPromise from 'request-promise';
 import path from 'path';
 
-import { IMAGE_DEST_DIR } from '../common/FILE_CONSTANTS';
+import { IMAGE_DEST_DIR } from '../constants/FILE_CONSTANTS';
 
 export const findImageSuffix = (imageUrl) => {
   const imageUrlSeperated = imageUrl.split('.');

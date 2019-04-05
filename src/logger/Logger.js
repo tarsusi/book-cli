@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { ERROR_LOG_FILE } from '../common/FILE_CONSTANTS';
+import { ERROR_LOG_FILE } from '../constants/FILE_CONSTANTS';
 
 class Logger {
   constructor() {
