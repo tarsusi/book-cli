@@ -3,10 +3,14 @@ import fs from 'fs';
 import Logger from '../logger/Logger';
 import UI from '../ui/UI';
 import ParserUtil from './ParserUtil';
-import { validateISBN } from './ValidateUtil';
+import { validateCompleteRecord, validateISBN } from './ValidateUtil';
 import { downloadImage } from './ImageUtil';
 
-import { CSV_HEADERS, DEST_PATH, MAX_PERCENTAGE } from '../common/FILE_CONSTANTS';
+import {
+  CSV_HEADERS,
+  DEST_PATH,
+  MAX_PERCENTAGE,
+} from '../common/FILE_CONSTANTS';
 
 const findByteLength = text => Buffer.byteLength(text, 'utf8');
 
@@ -63,11 +67,23 @@ const readAndUpdateFile = (filePath, callback) => {
             let bookInfo;
             let imagePath = '';
 
-            if (validateISBN(isbn)) {
-              bookInfo = await ParserUtil.parseBook(isbn, bookName, author, price);
+            if (validateCompleteRecord(isbn, bookName, author, price)) {
+              bookInfo = {
+                isbn,
+                bookName,
+                author,
+                price,
+              };
+            } else if (validateISBN(isbn)) {
+              bookInfo = await ParserUtil.parseBook(
+                isbn,
+                bookName,
+                author,
+                price,
+              );
 
               if (!bookInfo.isbn || !bookInfo.bookName) {
-                Logger.error(`No ISBN or BookName for record=${[isbn, bookName, author, price]}`);
+                Logger.error(`No ISBN or BookName for record=${rowFields}`);
               }
 
               if (bookInfo.bookImage) {
@@ -76,7 +92,7 @@ const readAndUpdateFile = (filePath, callback) => {
                   `${bookInfo.bookName}-${bookInfo.author}`,
                 );
               } else {
-                Logger.error(`No book image found for record=${[isbn, bookName, author, price]}`);
+                Logger.error(`No book image found for record=${rowFields}`);
               }
             } else {
               bookInfo = {
@@ -87,7 +103,7 @@ const readAndUpdateFile = (filePath, callback) => {
               };
 
               Logger.error(
-                `The given ISBN is not valid for record=${[isbn, bookName, author, price]}`,
+                `The given ISBN is not valid for record=${rowFields}`,
               );
             }
 
@@ -102,7 +118,10 @@ const readAndUpdateFile = (filePath, callback) => {
                 ],
               ],
               (err, output) => {
-                const percentage = ((charsCopied / fileSize) * MAX_PERCENTAGE).toFixed(2);
+                const percentage = (
+                  (charsCopied / fileSize)
+                  * MAX_PERCENTAGE
+                ).toFixed(2);
 
                 UI.redraw(`${percentage}%`);
 
