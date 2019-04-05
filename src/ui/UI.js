@@ -19,6 +19,8 @@ class UI {
     });
   };
 
+  log = (text = '') => Vorpal.log(text);
+
   redraw = (text = '') => Vorpal.ui.redraw(text);
 
   show = () => Vorpal.show();
