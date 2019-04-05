@@ -31,3 +31,7 @@ export const validateCompleteRecord = (isbn, bookName, author, price) => {
 };
 
 export const validateBookName = bookName => !!bookName;
+
+export const validateLimitOffset = (index, start, end) => (start === -1 && end === -1)
+  || (end === -1 && index >= start && start > -1)
+  || (start > -1 && index >= start && end > -1 && index <= end);

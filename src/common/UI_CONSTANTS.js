@@ -7,9 +7,9 @@ export const UI_COMMANDS = [
     name: 'correct-csv <filePath> [startIndex] [endIndex]',
     explanation: 'Reads a CSV file and fulfill missing data',
     action: (args, callback) => {
-      const { filePath } = args;
+      const { filePath, startIndex, endIndex } = args;
 
-      readAndUpdateFile(filePath, callback);
+      readAndUpdateFile(filePath, startIndex, endIndex, callback);
     },
   },
 ];
