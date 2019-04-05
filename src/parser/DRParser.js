@@ -30,10 +30,11 @@ class DRParser {
       const bookImage = firstBook.find('figure .item-name img').attr('src') || '';
 
       return {
-        bookName,
         author,
-        price,
+        bookName,
         bookImage,
+        isbn,
+        price,
       };
     }
 

@@ -66,6 +66,10 @@ const readAndUpdateFile = (filePath, callback) => {
             if (validateISBN(isbn)) {
               bookInfo = await ParserUtil.parseBook(isbn, bookName, author, price);
 
+              if (!bookInfo.isbn || !bookInfo.bookName) {
+                Logger.error(`No ISBN or BookName for record=${[isbn, bookName, author, price]}`);
+              }
+
               if (bookInfo.bookImage) {
                 imagePath = downloadImage(
                   bookInfo.bookImage,

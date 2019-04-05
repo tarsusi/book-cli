@@ -30,10 +30,11 @@ class IdefixParser {
       const bookImage = firstBook.find('.product-image .image-area img').attr('data-src') || '';
 
       return {
-        bookName,
         author,
-        price,
         bookImage,
+        bookName,
+        isbn,
+        price,
       };
     }
 
