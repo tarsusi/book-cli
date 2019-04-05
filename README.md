@@ -47,3 +47,7 @@ In this project, [the vorpal](https://github.com/dthree/vorpal) is used to build
 - The fetch book detailed information, the html pages are parsed. The details about parsed can be found `src/util/ParserUtil.js`. 
 - The new parsers can be added to the ParserUtil. For now there are 2 different website parsers.
 - To parse html pages, [the cheerio](https://github.com/cheeriojs/cheerio) library is used.
+
+## Logs
+
+- Created Logger class to manage all logging operations. The default log file is set in `src/constants/FILE_CONSTANTS.js` as **ERROR_LOG_FILE** variable.
