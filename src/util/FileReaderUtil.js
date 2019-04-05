@@ -3,11 +3,21 @@ import fs from 'fs';
 import Logger from '../logger/Logger';
 import UI from '../ui/UI';
 import ParserUtil from './ParserUtil';
+import { validateISBN } from './ValidateUtil';
 import { downloadImage } from './ImageUtil';
 
 import { CSV_HEADERS, DEST_PATH, MAX_PERCENTAGE } from '../common/FILE_CONSTANTS';
 
 const findByteLength = text => Buffer.byteLength(text, 'utf8');
+
+const INPUT_CSV_HEADERS = [
+  CSV_HEADERS.ISBN,
+  CSV_HEADERS.BOOK_NAME,
+  CSV_HEADERS.AUTHOR,
+  CSV_HEADERS.PRICE,
+];
+
+const OUTPUT_CSV_HEADERS = [...INPUT_CSV_HEADERS, CSV_HEADERS.IMAGE_PATH];
 
 const readAndUpdateFile = (filePath, callback) => {
   if (fs.existsSync(filePath)) {
@@ -19,7 +29,8 @@ const readAndUpdateFile = (filePath, callback) => {
         callback();
       } else {
         const fileSize = stat.size;
-        let charsCopied = findByteLength(Object.keys(CSV_HEADERS).join(',')) + 1; // initially add first header line
+
+        let charsCopied = findByteLength(INPUT_CSV_HEADERS.join(',')) + 1; // initially add first header line
 
         const parser = csv.parse({ delimiter: ',', columns: true });
 
@@ -28,6 +39,8 @@ const readAndUpdateFile = (filePath, callback) => {
         const writer = fs.createWriteStream(DEST_PATH, { flags: 'a' });
 
         UI.redraw();
+
+        writer.write(`${OUTPUT_CSV_HEADERS.join(',')}\n`);
 
         fs.createReadStream(filePath)
           .pipe(parser)
@@ -47,9 +60,32 @@ const readAndUpdateFile = (filePath, callback) => {
               charsCopied -= 1;
             }
 
-            const bookInfo = await ParserUtil.parseBook(isbn, bookName, author, price);
+            let bookInfo;
+            let imagePath = '';
 
-            downloadImage(bookInfo.bookImage, `${bookInfo.bookName}-${bookInfo.author}`);
+            if (validateISBN(isbn)) {
+              bookInfo = await ParserUtil.parseBook(isbn, bookName, author, price);
+
+              if (bookInfo.bookImage) {
+                imagePath = downloadImage(
+                  bookInfo.bookImage,
+                  `${bookInfo.bookName}-${bookInfo.author}`,
+                );
+              } else {
+                Logger.error(`No book image found for record=${[isbn, bookName, author, price]}`);
+              }
+            } else {
+              bookInfo = {
+                isbn,
+                bookName,
+                author,
+                price,
+              };
+
+              Logger.error(
+                `The given ISBN is not valid for record=${[isbn, bookName, author, price]}`,
+              );
+            }
 
             csv.stringify(
               [
@@ -58,6 +94,7 @@ const readAndUpdateFile = (filePath, callback) => {
                   bookInfo.bookName.trim(),
                   bookInfo.author.trim(),
                   bookInfo.price.trim(),
+                  imagePath.trim(),
                 ],
               ],
               (err, output) => {
@@ -77,7 +114,9 @@ const readAndUpdateFile = (filePath, callback) => {
       }
     });
   } else {
-    Logger.log('File does not exists!');
+    UI.redraw('File does not exists!');
+
+    Logger.error('File does not exists!');
     callback();
   }
 };
