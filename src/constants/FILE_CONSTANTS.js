@@ -1,10 +1,12 @@
 export const CSV_HEADERS = {
-  ISBN: 'ISBN',
-  BOOK_NAME: 'BOOK_NAME',
-  AUTHOR: 'AUTHOR',
-  PRICE: 'PRICE',
+  ISBN: 'isbn13',
+  BOOK_NAME: 'title',
+  AUTHOR: 'authors',
+  PRICE: 'price',
   IMAGE_PATH: 'IMAGE_PATH',
 };
+
+export const CSV_FILE_DELIMITERS = ';';
 
 export const ERROR_LOG_FILE = 'errors.log';
 
