@@ -23,7 +23,7 @@ class UI {
 
   redraw = (text = '') => Vorpal.ui.redraw(text);
 
-  show = () => Vorpal.show();
+  start = () => Vorpal.show();
 }
 
 export default new UI();

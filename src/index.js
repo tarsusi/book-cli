@@ -1,3 +1,3 @@
 import UI from './ui/UI';
 
-UI.show();
+UI.start();
