@@ -2,7 +2,7 @@ import csv from 'csv';
 import fs from 'fs';
 
 import Logger from '../logger/Logger';
-import UI from '../ui/UI';
+import UI, { chalk } from '../ui/UI';
 import ParserUtil from './ParserUtil';
 import {
   validateCompleteRecord,
@@ -19,8 +19,6 @@ import {
 } from '../constants/FILE_CONSTANTS';
 
 const findByteLength = text => Buffer.byteLength(text, 'utf8');
-
-const chalk = UI.getChalk();
 
 const INPUT_CSV_HEADERS = [
   CSV_HEADERS.ISBN,
