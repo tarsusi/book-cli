@@ -1,5 +1,6 @@
 import csv from 'csv';
 import fs from 'fs';
+
 import Logger from '../logger/Logger';
 import UI from '../ui/UI';
 import ParserUtil from './ParserUtil';
@@ -12,6 +13,7 @@ import { downloadImage } from './ImageUtil';
 
 import {
   CSV_HEADERS,
+  CSV_FILE_DELIMITERS,
   DEST_PATH,
   MAX_PERCENTAGE,
 } from '../constants/FILE_CONSTANTS';
@@ -27,9 +29,43 @@ const INPUT_CSV_HEADERS = [
 
 const OUTPUT_CSV_HEADERS = [...INPUT_CSV_HEADERS, CSV_HEADERS.IMAGE_PATH];
 
+const toCSVRecord = (isbn, bookName, author, price, imagePath) => [
+  [
+    (isbn && isbn.trim()) || '',
+    (bookName && bookName.trim()) || '',
+    (author && author.trim()) || '',
+    (price && price.trim()) || '',
+    (imagePath && imagePath.trim()) || '',
+  ],
+];
+
+const writeToFile = (
+  record,
+  percentage,
+  isLastRecord,
+  fileWriter,
+  callback,
+) => {
+  csv.stringify(record, (error, output) => {
+    if (error) {
+      Logger.error(error);
+      return;
+    }
+
+    UI.redraw(`Completed ${Math.min(percentage, 100)}%`);
+
+    fileWriter.write(output);
+
+    if (isLastRecord && percentage >= 100) {
+      UI.log('File reading process completed');
+      callback();
+    }
+  });
+};
+
 const readAndUpdateFile = (filePath, startIndex, endIndex, callback) => {
   if (fs.existsSync(filePath)) {
-    Logger.log('File exists!');
+    UI.log('File exists!');
 
     fs.stat(filePath, (error, stat) => {
       if (error) {
@@ -42,54 +78,61 @@ const readAndUpdateFile = (filePath, startIndex, endIndex, callback) => {
 
         let recordIndexer = 0;
 
-        let charsCopied = findByteLength(INPUT_CSV_HEADERS.join(',')) + 1; // initially add first header line
+        let charsCopied = findByteLength(INPUT_CSV_HEADERS.join(',')) + 2; // initially add first header line
 
-        const parser = csv.parse({ delimiter: ',', columns: true });
-
-        if (fs.existsSync(DEST_PATH)) {
-          fs.unlinkSync(DEST_PATH);
-        }
-
-        const writer = fs.createWriteStream(DEST_PATH, { flags: 'a' });
+        const parser = csv.parse({
+          delimiter: CSV_FILE_DELIMITERS,
+          columns: true,
+          relax_column_count: true,
+        });
+        const fileWriter = fs.createWriteStream(DEST_PATH);
 
         UI.log('File reading process started');
-        UI.redraw('Completed 0%');
 
-        writer.write(`${OUTPUT_CSV_HEADERS.join(',')}\n`);
+        fileWriter.write(`${OUTPUT_CSV_HEADERS.join(',')}\n`);
 
         fs.createReadStream(filePath)
           .pipe(parser)
           .on('data', async (row) => {
-            recordIndexer += 1;
-
-            const isbn = row[CSV_HEADERS.ISBN];
-            const bookName = row[CSV_HEADERS.BOOK_NAME];
-            const author = row[CSV_HEADERS.AUTHOR];
-            const price = row[CSV_HEADERS.PRICE];
+            const isbn = row[CSV_HEADERS.ISBN] || '';
+            const bookName = row[CSV_HEADERS.BOOK_NAME] || '';
+            const author = row[CSV_HEADERS.AUTHOR] || '';
+            const price = row[CSV_HEADERS.PRICE] || '';
 
             const rowFields = [isbn, bookName, author, price];
 
-            const rowCharLength = findByteLength(rowFields.join(',')) + 1;
+            const rowCharLength = findByteLength(rowFields.join(',')) + 2;
 
             let bookInfo;
+            let percentage;
             let imagePath = '';
 
             if (
               validateCompleteRecord(isbn, bookName, author, price)
               || !validateLimitOffset(recordIndexer, limitStart, limitEnd)
             ) {
-              bookInfo = {
+              const bookRecord = toCSVRecord(
                 isbn,
                 bookName,
                 author,
                 price,
-              };
+                imagePath,
+              );
 
+              recordIndexer += 1;
               charsCopied += rowCharLength;
+              percentage = ((charsCopied / fileSize) * MAX_PERCENTAGE).toFixed(
+                2,
+              );
+              const recordSize = parser.info.records;
 
-              if (charsCopied > fileSize) {
-                charsCopied -= 1;
-              }
+              writeToFile(
+                bookRecord,
+                percentage,
+                recordIndexer >= recordSize,
+                fileWriter,
+                callback,
+              );
             } else if (validateISBN(isbn)) {
               bookInfo = await ParserUtil.parseBook(
                 isbn,
@@ -111,66 +154,61 @@ const readAndUpdateFile = (filePath, startIndex, endIndex, callback) => {
                 Logger.error(`No book image found for record=${rowFields}`);
               }
 
-              charsCopied += rowCharLength;
-
-              if (charsCopied > fileSize) {
-                charsCopied -= 1;
-              }
-            } else {
-              bookInfo = {
+              const bookRecord = toCSVRecord(
                 isbn,
-                bookName,
-                author,
-                price,
-              };
+                bookInfo.bookName,
+                bookInfo.author,
+                bookInfo.price,
+                imagePath,
+              );
 
+              recordIndexer += 1;
+              charsCopied += rowCharLength;
+              percentage = ((charsCopied / fileSize) * MAX_PERCENTAGE).toFixed(
+                2,
+              );
+              const recordSize = parser.info.records;
+
+              writeToFile(
+                bookRecord,
+                percentage,
+                recordIndexer >= recordSize,
+                fileWriter,
+                callback,
+              );
+            } else {
               Logger.error(
                 `The given ISBN is not valid for record=${rowFields}`,
               );
 
+              const bookRecord = toCSVRecord(
+                isbn,
+                bookName,
+                author,
+                price,
+                imagePath,
+              );
+
+              recordIndexer += 1;
               charsCopied += rowCharLength;
+              percentage = ((charsCopied / fileSize) * MAX_PERCENTAGE).toFixed(
+                2,
+              );
+              const recordSize = parser.info.records;
 
-              if (charsCopied > fileSize) {
-                charsCopied -= 1;
-              }
+              writeToFile(
+                bookRecord,
+                percentage,
+                recordIndexer >= recordSize,
+                fileWriter,
+                callback,
+              );
             }
-
-            csv.stringify(
-              [
-                [
-                  isbn.trim(),
-                  bookInfo.bookName.trim(),
-                  bookInfo.author.trim(),
-                  bookInfo.price.trim(),
-                  imagePath.trim(),
-                ],
-              ],
-              (err, output) => {
-                if (error) {
-                  Logger.error(error);
-                  return;
-                }
-
-                const percentage = (
-                  (charsCopied / fileSize)
-                  * MAX_PERCENTAGE
-                ).toFixed(2);
-
-                UI.redraw(`Completed ${percentage}%`);
-                writer.write(output);
-
-                if (charsCopied === fileSize) {
-                  UI.log('File reading process completed');
-                  callback();
-                }
-              },
-            );
-          })
-          .on('end', callback);
+          });
       }
     });
   } else {
-    UI.redraw('File does not exists!');
+    UI.log('File does not exists!');
 
     Logger.error('File does not exists!');
     callback();
