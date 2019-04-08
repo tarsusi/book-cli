@@ -46,7 +46,9 @@ const readAndUpdateFile = (filePath, startIndex, endIndex, callback) => {
 
         const parser = csv.parse({ delimiter: ',', columns: true });
 
-        fs.unlinkSync(DEST_PATH);
+        if (fs.existsSync(DEST_PATH)) {
+          fs.unlinkSync(DEST_PATH);
+        }
 
         const writer = fs.createWriteStream(DEST_PATH, { flags: 'a' });
 
