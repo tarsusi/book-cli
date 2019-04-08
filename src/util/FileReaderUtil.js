@@ -20,6 +20,8 @@ import {
 
 const findByteLength = text => Buffer.byteLength(text, 'utf8');
 
+const chalk = UI.getChalk();
+
 const INPUT_CSV_HEADERS = [
   CSV_HEADERS.ISBN,
   CSV_HEADERS.BOOK_NAME,
@@ -52,12 +54,12 @@ const writeToFile = (
       return;
     }
 
-    UI.redraw(`Completed ${Math.min(percentage, 100)}%`);
+    UI.redraw(chalk.green(`Completed ${Math.min(percentage, 100)}%`));
 
     fileWriter.write(output);
 
     if (isLastRecord && percentage >= 100) {
-      UI.log('File reading process completed');
+      UI.log(chalk.yellow('File reading process completed'));
       callback();
     }
   });
@@ -65,7 +67,7 @@ const writeToFile = (
 
 const readAndUpdateFile = (filePath, startIndex, endIndex, callback) => {
   if (fs.existsSync(filePath)) {
-    UI.log('File exists!');
+    UI.log(chalk.green('File exists!'));
 
     fs.stat(filePath, (error, stat) => {
       if (error) {
@@ -87,7 +89,7 @@ const readAndUpdateFile = (filePath, startIndex, endIndex, callback) => {
         });
         const fileWriter = fs.createWriteStream(DEST_PATH);
 
-        UI.log('File reading process started');
+        UI.log(chalk.cyan('File reading process started'));
 
         fileWriter.write(`${OUTPUT_CSV_HEADERS.join(',')}\n`);
 

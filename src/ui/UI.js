@@ -19,6 +19,8 @@ class UI {
     });
   };
 
+  getChalk = () => chalk;
+
   log = (text = '') => Vorpal.log(text);
 
   redraw = (text = '') => Vorpal.ui.redraw(text);
