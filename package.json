@@ -4,7 +4,7 @@
   "description": "A NodeJS cli application that completed missing informations of given Books CSV file.",
   "main": "index.js",
   "scripts": {
-    "build": "babel ./index.js --out-dir dist",
+    "build": "babel src --out-dir dist",
     "clean": "rm -rf ./dist",
     "dev": "NODE_ENV=development babel-node ./index.js",
     "lint": "eslint",
