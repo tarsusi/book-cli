@@ -42,6 +42,10 @@ export const UI_COMMANDS = [
         name: '--price [price]',
         explanation: 'CSV header value of book price.',
       },
+      {
+        name: '--imagePath [imagePath]',
+        explanation: 'CSV header value of book image path destination.',
+      },
     ],
     action: (args, callback) => {
       const settingKeys = Object.keys(args.options);
@@ -53,6 +57,7 @@ export const UI_COMMANDS = [
         { name: 'title', key: USER_SETTING_KEYS.TITLE },
         { name: 'author', key: USER_SETTING_KEYS.AUTHOR },
         { name: 'price', key: USER_SETTING_KEYS.PRICE },
+        { name: 'imagePath', key: USER_SETTING_KEYS.IMAGE_PATH },
       ];
 
       userSettings.forEach((userSetting) => {

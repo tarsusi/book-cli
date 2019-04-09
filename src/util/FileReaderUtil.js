@@ -13,7 +13,7 @@ import {
 } from './ValidateUtil';
 import { downloadImage } from './ImageUtil';
 
-import { CSV_HEADERS, MAX_PERCENTAGE } from '../constants/FILE_CONSTANTS';
+import { MAX_PERCENTAGE } from '../constants/FILE_CONSTANTS';
 
 const findByteLength = text => Buffer.byteLength(text, 'utf8');
 
@@ -77,7 +77,7 @@ const readAndUpdateFile = (filePath, startIndex, endIndex, callback) => {
 
         const OUTPUT_CSV_HEADERS = [
           ...INPUT_CSV_HEADERS,
-          CSV_HEADERS.IMAGE_PATH,
+          userSettings[USER_SETTING_KEYS.IMAGE_PATH],
         ];
 
         let charsCopied = findByteLength(INPUT_CSV_HEADERS.join(',')) + 2; // initially add first header line
