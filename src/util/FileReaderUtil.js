@@ -4,6 +4,7 @@ import fs from 'fs';
 import Logger from '../logger/Logger';
 import UI, { chalk } from '../ui/UI';
 import ParserUtil from './ParserUtil';
+import I18N_KEYS from '../constants/I18N_KEYS';
 import UserSettings, { USER_SETTING_KEYS } from '../settings/UserSettings';
 
 import {
@@ -16,6 +17,8 @@ import { downloadImage } from './ImageUtil';
 import { MAX_PERCENTAGE } from '../constants/FILE_CONSTANTS';
 
 const findByteLength = text => Buffer.byteLength(text, 'utf8');
+
+let recordReadCounter = 1;
 
 const toCSVRecord = (isbn, bookName, author, price, imagePath) => [
   [
@@ -30,6 +33,7 @@ const toCSVRecord = (isbn, bookName, author, price, imagePath) => [
 const writeToFile = (
   record,
   percentage,
+  parser,
   isLastRecord,
   fileWriter,
   callback,
@@ -45,22 +49,29 @@ const writeToFile = (
         return;
       }
 
-      UI.redraw(chalk.green(`Completed ${Math.min(percentage, 100)}%`));
+      recordReadCounter += 1;
+
+      UI.redraw(chalk.green(I18N_KEYS.FILE_READING_PROGRESS(percentage)));
 
       fileWriter.write(output);
 
-      if (isLastRecord && percentage >= 100) {
-        UI.redraw(chalk.green('Completed 100%'));
-        UI.log(chalk.yellow('File reading process completed'));
-        callback();
+      if (
+        (isLastRecord && percentage >= 100)
+        || recordReadCounter === parser.info.lines
+      ) {
+        UI.redraw(chalk.green(I18N_KEYS.FILE_READING_PROGRESS(100)));
+        UI.log(chalk.yellow(I18N_KEYS.FILE_READING_COMPLETED));
+
+        recordReadCounter = 1;
       }
+      callback();
     },
   );
 };
 
 const readAndUpdateFile = (filePath, startIndex, endIndex, callback) => {
   if (fs.existsSync(filePath)) {
-    UI.log(chalk.green('File exists!'));
+    UI.log(chalk.green(I18N_KEYS.FILE_ALREADY_EXISTS));
 
     fs.stat(filePath, (error, stat) => {
       if (error) {
@@ -99,13 +110,13 @@ const readAndUpdateFile = (filePath, startIndex, endIndex, callback) => {
             rtrim: true,
             skip_lines_with_error: true,
           })
-          .on('error', parserError => Logger.error(`Parser Error ${parserError}`));
+          .on('error', parserError => Logger.error(I18N_KEYS.PARSER_ERROR(parserError)));
 
         const fileWriter = fs.createWriteStream(
           userSettings[USER_SETTING_KEYS.OUTPUT_PATH],
         );
 
-        UI.log(chalk.cyan('File reading process started'));
+        UI.log(chalk.cyan(I18N_KEYS.FILE_READING_STARTED));
 
         fileWriter.write(
           `${OUTPUT_CSV_HEADERS.join(
@@ -128,30 +139,16 @@ const readAndUpdateFile = (filePath, startIndex, endIndex, callback) => {
                 USER_SETTING_KEYS.DELIMITER,
               );
 
-              UI.log(`${chalk.red(`
-                        !!!!!!!
-Oh, it seems you are using wrong CSV format. You should use
-the following CSV file format to get any successful result.
-First line is header, the second line is an example of record.`)}
-
+              UI.log(`${chalk.red(I18N_KEYS.WRONG_FORMAT_ERROR_HEADER)}
   ${chalk.cyan(`
   ${userSettings[USER_SETTING_KEYS.ISBN]}${currentDelimiter}${
   userSettings[USER_SETTING_KEYS.TITLE]
 }${currentDelimiter}${
   userSettings[USER_SETTING_KEYS.AUTHOR]
 }${currentDelimiter}${userSettings[USER_SETTING_KEYS.PRICE]}
-  1234567890123;Title;Author(s);Price
+  ${I18N_KEYS.CSV_FORMAT_EXAMPLE}
 
-${chalk.green(`
-  But do not worry. You can change following settings using changeSetting command:
-
-  delimiter   -   Change CSV values delimiter symbol. Default is comma(,).
-  outputPath  -   Destination file for output. Default is 'output.csv'.
-  isbn        -   CSV header for ISBN. Default is 'isbn13'.
-  title       -   CSV header for title of book. Default is 'title'.
-  author      -   CSV header for author of book. Default is 'authors'.
-  price       -   CSV header for price of book. Default is 'price'.
-`)}
+${chalk.green(I18N_KEYS.WRONG_FORMAT_INFORMATION)}
         `)}`);
               const destPath = userSettings[USER_SETTING_KEYS.OUTPUT_PATH];
 
@@ -200,6 +197,7 @@ ${chalk.green(`
               writeToFile(
                 bookRecord,
                 percentage,
+                parser,
                 recordIndexer >= recordSize,
                 fileWriter,
                 callback,
@@ -213,7 +211,7 @@ ${chalk.green(`
               );
 
               if (!bookInfo.isbn || !bookInfo.bookName) {
-                Logger.error(`No ISBN or BookName for record=${rowFields}`);
+                Logger.error(I18N_KEYS.NO_ISBN_OR_TITLE_ERROR(rowFields));
               }
 
               if (bookInfo.bookImage) {
@@ -222,7 +220,7 @@ ${chalk.green(`
                   `${bookInfo.bookName}-${bookInfo.author}`,
                 );
               } else {
-                Logger.error(`No book image found for record=${rowFields}`);
+                Logger.error(I18N_KEYS.NO_BOOK_IMAGE_ERROR(rowFields));
               }
 
               const bookRecord = toCSVRecord(
@@ -243,14 +241,13 @@ ${chalk.green(`
               writeToFile(
                 bookRecord,
                 percentage,
+                parser,
                 recordIndexer >= recordSize,
                 fileWriter,
                 callback,
               );
             } else {
-              Logger.error(
-                `The given ISBN is not valid for record=${rowFields}`,
-              );
+              Logger.error(I18N_KEYS.INVALID_ISBN_ERROR(rowFields));
 
               const bookRecord = toCSVRecord(
                 isbn,
@@ -270,6 +267,7 @@ ${chalk.green(`
               writeToFile(
                 bookRecord,
                 percentage,
+                parser,
                 recordIndexer >= recordSize,
                 fileWriter,
                 callback,
@@ -279,9 +277,9 @@ ${chalk.green(`
       }
     });
   } else {
-    UI.log('File does not exists!');
+    UI.log(I18N_KEYS.FILE_NOT_EXISTS);
 
-    Logger.error('File does not exists!');
+    Logger.error(I18N_KEYS.FILE_NOT_EXISTS);
     callback();
   }
 };
