@@ -4,6 +4,8 @@ import fs from 'fs';
 import Logger from '../logger/Logger';
 import UI, { chalk } from '../ui/UI';
 import ParserUtil from './ParserUtil';
+import UserSettings, { USER_SETTING_KEYS } from '../settings/UserSettings';
+
 import {
   validateCompleteRecord,
   validateLimitOffset,
@@ -11,23 +13,9 @@ import {
 } from './ValidateUtil';
 import { downloadImage } from './ImageUtil';
 
-import {
-  CSV_HEADERS,
-  CSV_FILE_DELIMITERS,
-  DEST_PATH,
-  MAX_PERCENTAGE,
-} from '../constants/FILE_CONSTANTS';
+import { CSV_HEADERS, MAX_PERCENTAGE } from '../constants/FILE_CONSTANTS';
 
 const findByteLength = text => Buffer.byteLength(text, 'utf8');
-
-const INPUT_CSV_HEADERS = [
-  CSV_HEADERS.ISBN,
-  CSV_HEADERS.BOOK_NAME,
-  CSV_HEADERS.AUTHOR,
-  CSV_HEADERS.PRICE,
-];
-
-const OUTPUT_CSV_HEADERS = [...INPUT_CSV_HEADERS, CSV_HEADERS.IMAGE_PATH];
 
 const toCSVRecord = (isbn, bookName, author, price, imagePath) => [
   [
@@ -78,14 +66,31 @@ const readAndUpdateFile = (filePath, startIndex, endIndex, callback) => {
 
         let recordIndexer = 0;
 
+        const userSettings = UserSettings.getUserSettings();
+
+        const INPUT_CSV_HEADERS = [
+          userSettings[USER_SETTING_KEYS.ISBN],
+          userSettings[USER_SETTING_KEYS.TITLE],
+          userSettings[USER_SETTING_KEYS.AUTHOR],
+          userSettings[USER_SETTING_KEYS.PRICE],
+        ];
+
+        const OUTPUT_CSV_HEADERS = [
+          ...INPUT_CSV_HEADERS,
+          CSV_HEADERS.IMAGE_PATH,
+        ];
+
         let charsCopied = findByteLength(INPUT_CSV_HEADERS.join(',')) + 2; // initially add first header line
 
         const parser = csv.parse({
-          delimiter: CSV_FILE_DELIMITERS,
+          delimiter: userSettings[USER_SETTING_KEYS.DELIMITER],
           columns: true,
           relax_column_count: true,
         });
-        const fileWriter = fs.createWriteStream(DEST_PATH);
+
+        const fileWriter = fs.createWriteStream(
+          userSettings[USER_SETTING_KEYS.OUTPUT_PATH],
+        );
 
         UI.log(chalk.cyan('File reading process started'));
 
@@ -94,10 +99,57 @@ const readAndUpdateFile = (filePath, startIndex, endIndex, callback) => {
         fs.createReadStream(filePath)
           .pipe(parser)
           .on('data', async (row) => {
-            const isbn = row[CSV_HEADERS.ISBN] || '';
-            const bookName = row[CSV_HEADERS.BOOK_NAME] || '';
-            const author = row[CSV_HEADERS.AUTHOR] || '';
-            const price = row[CSV_HEADERS.PRICE] || '';
+            const rowKeys = Object.keys(row);
+
+            if (
+              (rowKeys.length !== INPUT_CSV_HEADERS.length
+                && !row[userSettings[USER_SETTING_KEYS.ISBN]])
+              || rowKeys.some(rowKey => !INPUT_CSV_HEADERS.includes(rowKey))
+            ) {
+              const currentDelimiter = UserSettings.getUserSetting(
+                USER_SETTING_KEYS.DELIMITER,
+              );
+
+              UI.log(`${chalk.red(`
+                        !!!!!!!
+Oh, it seems you are using wrong CSV format. You should use
+the following CSV file format to get any successful result.
+First line is header, the second line is an example of record.`)}
+
+  ${chalk.cyan(`
+  ${userSettings[USER_SETTING_KEYS.ISBN]}${currentDelimiter}${
+  userSettings[USER_SETTING_KEYS.TITLE]
+}${currentDelimiter}${
+  userSettings[USER_SETTING_KEYS.AUTHOR]
+}${currentDelimiter}${userSettings[USER_SETTING_KEYS.PRICE]}
+  1234567890123;Title;Author(s);Price
+
+${chalk.green(`
+  But do not worry. You can change following settings using changeSetting command:
+
+  delimiter   -   Change CSV values delimiter symbol. Default is comma(,).
+  outputPath  -   Destination file for output. Default is 'output.csv'.
+  isbn        -   CSV header for ISBN. Default is 'isbn13'.
+  title       -   CSV header for title of book. Default is 'title'.
+  author      -   CSV header for author of book. Default is 'authors'.
+  price       -   CSV header for price of book. Default is 'price'.
+`)}
+        `)}`);
+              const destPath = userSettings[USER_SETTING_KEYS.DELIMITER];
+              if (fs.existsSync(destPath)) {
+                fs.unlinkSync(destPath);
+              }
+
+              parser.pause();
+              callback();
+
+              return;
+            }
+
+            const isbn = row[userSettings[USER_SETTING_KEYS.ISBN]] || '';
+            const bookName = row[userSettings[USER_SETTING_KEYS.TITLE]] || '';
+            const author = row[userSettings[USER_SETTING_KEYS.AUTHOR]] || '';
+            const price = row[userSettings[USER_SETTING_KEYS.PRICE]] || '';
 
             const rowFields = [isbn, bookName, author, price];
 
