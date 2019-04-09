@@ -50,6 +50,7 @@ const writeToFile = (
       fileWriter.write(output);
 
       if (isLastRecord && percentage >= 100) {
+        UI.redraw(chalk.green('Completed 100%'));
         UI.log(chalk.yellow('File reading process completed'));
         callback();
       }
@@ -88,11 +89,17 @@ const readAndUpdateFile = (filePath, startIndex, endIndex, callback) => {
 
         let charsCopied = findByteLength(INPUT_CSV_HEADERS.join(',')) + 2; // initially add first header line
 
-        const parser = csv.parse({
-          delimiter: userSettings[USER_SETTING_KEYS.DELIMITER],
-          columns: true,
-          relax_column_count: true,
-        });
+        const parser = csv
+          .parse({
+            columns: true,
+            delimiter: userSettings[USER_SETTING_KEYS.DELIMITER],
+            ltrim: true,
+            quote: '"',
+            relax_column_count: true,
+            rtrim: true,
+            skip_lines_with_error: true,
+          })
+          .on('error', parserError => Logger.error(`Parser Error ${parserError}`));
 
         const fileWriter = fs.createWriteStream(
           userSettings[USER_SETTING_KEYS.OUTPUT_PATH],
@@ -114,7 +121,8 @@ const readAndUpdateFile = (filePath, startIndex, endIndex, callback) => {
             if (
               (rowKeys.length !== INPUT_CSV_HEADERS.length
                 && !row[userSettings[USER_SETTING_KEYS.ISBN]])
-              || rowKeys.some(rowKey => !INPUT_CSV_HEADERS.includes(rowKey))
+              || (rowKeys.some(rowKey => !INPUT_CSV_HEADERS.includes(rowKey))
+                && !parser.isPaused())
             ) {
               const currentDelimiter = UserSettings.getUserSetting(
                 USER_SETTING_KEYS.DELIMITER,
@@ -145,7 +153,8 @@ ${chalk.green(`
   price       -   CSV header for price of book. Default is 'price'.
 `)}
         `)}`);
-              const destPath = userSettings[USER_SETTING_KEYS.DELIMITER];
+              const destPath = userSettings[USER_SETTING_KEYS.OUTPUT_PATH];
+
               if (fs.existsSync(destPath)) {
                 fs.unlinkSync(destPath);
               }
