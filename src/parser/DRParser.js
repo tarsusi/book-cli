@@ -1,6 +1,7 @@
 // Parser for D&R
 import cheerio from 'cheerio';
 import requestPromise from 'request-promise';
+import Logger from '../logger/Logger';
 
 const BOOK_SEARCH_URL = 'https://www.dr.com.tr/search?q=';
 
@@ -12,7 +13,15 @@ class DRParser {
   };
 
   parse = async (isbn) => {
-    const pageHTML = await this.getPageHTML(`${BOOK_SEARCH_URL}${isbn}`);
+    let pageHTML;
+
+    try {
+      pageHTML = await this.getPageHTML(`${BOOK_SEARCH_URL}${isbn}`);
+    } catch (error) {
+      Logger.error(error);
+
+      return {};
+    }
 
     const $ = cheerio.load(pageHTML);
 
