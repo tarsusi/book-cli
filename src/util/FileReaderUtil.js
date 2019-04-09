@@ -34,21 +34,27 @@ const writeToFile = (
   fileWriter,
   callback,
 ) => {
-  csv.stringify(record, (error, output) => {
-    if (error) {
-      Logger.error(error);
-      return;
-    }
+  csv.stringify(
+    record,
+    {
+      delimiter: UserSettings.getUserSetting(USER_SETTING_KEYS.DELIMITER),
+    },
+    (error, output) => {
+      if (error) {
+        Logger.error(error);
+        return;
+      }
 
-    UI.redraw(chalk.green(`Completed ${Math.min(percentage, 100)}%`));
+      UI.redraw(chalk.green(`Completed ${Math.min(percentage, 100)}%`));
 
-    fileWriter.write(output);
+      fileWriter.write(output);
 
-    if (isLastRecord && percentage >= 100) {
-      UI.log(chalk.yellow('File reading process completed'));
-      callback();
-    }
-  });
+      if (isLastRecord && percentage >= 100) {
+        UI.log(chalk.yellow('File reading process completed'));
+        callback();
+      }
+    },
+  );
 };
 
 const readAndUpdateFile = (filePath, startIndex, endIndex, callback) => {
@@ -94,7 +100,11 @@ const readAndUpdateFile = (filePath, startIndex, endIndex, callback) => {
 
         UI.log(chalk.cyan('File reading process started'));
 
-        fileWriter.write(`${OUTPUT_CSV_HEADERS.join(',')}\n`);
+        fileWriter.write(
+          `${OUTPUT_CSV_HEADERS.join(
+            userSettings[USER_SETTING_KEYS.DELIMITER],
+          )}\n`,
+        );
 
         fs.createReadStream(filePath)
           .pipe(parser)
