@@ -6,7 +6,7 @@ export const CSV_HEADERS = {
   IMAGE_PATH: 'IMAGE_PATH',
 };
 
-export const CSV_FILE_DELIMITERS = ';';
+export const CSV_FILE_DELIMITERS = ',';
 
 export const ERROR_LOG_FILE = 'errors.log';
 
