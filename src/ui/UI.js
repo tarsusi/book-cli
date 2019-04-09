@@ -13,10 +13,22 @@ class UI {
   }
 
   addCommands = () => {
-    UI_COMMANDS.forEach(({ name, explanation, action }) => {
-      Vorpal.command(name, explanation).action((args, callback) => {
-        action(args, callback);
-      });
+    UI_COMMANDS.forEach(({
+      name, explanation, action, options,
+    }) => {
+      const vorpalCommand = Vorpal.command(name, explanation).action(
+        (args, callback) => {
+          action(args, callback);
+        },
+      );
+
+      if (options) {
+        options.forEach(
+          ({ name: optionName, explanation: optionDescription }) => {
+            vorpalCommand.option(optionName, optionDescription);
+          },
+        );
+      }
     });
   };
 
